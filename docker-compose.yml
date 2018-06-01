@@ -41,6 +41,13 @@ volumes:
     driver: ${VOLUMES_DRIVER}
 
 services:
+### shortcut for starting project needed services ########
+    app:
+      image: tianon/true
+      depends_on:
+        - nginx
+        - mariadb
+        - solr
 
 ### Workspace Utilities ##################################
     workspace:
@@ -676,17 +683,34 @@ services:
         
 ### Solr ################################################
     solr:
-      build:
-        context: ./solr
-        args:
-          - SOLR_VERSION=${SOLR_VERSION}
-          - SOLR_DATAIMPORTHANDLER_MYSQL=${SOLR_DATAIMPORTHANDLER_MYSQL}
+      #build:
+      #  context: ./solr
+      #  args:
+      #    - SOLR_VERSION=${SOLR_VERSION}
+      #    - SOLR_DATAIMPORTHANDLER_MYSQL=${SOLR_DATAIMPORTHANDLER_MYSQL}
+      #volumes:
+      #    - ${DATA_PATH_HOST}/solr:/opt/solr/server/solr/mycores
+      #entrypoint:
+      #    - docker-entrypoint.sh
+      #    - solr-precreate
+      #    - solovivo
+      #ports:
+      #  - "${SOLR_PORT}:8983"
+      #networks:
+      #  - backend
+      image: solr:5
       volumes:
-        - ${DATA_PATH_HOST}/solr:/opt/solr/server/solr/mycores
+        - ${APP_CODE_PATH_HOST}/docs/solrconfig:/solrconfig
       ports:
         - "${SOLR_PORT}:8983"
+      entrypoint:
+        - docker-entrypoint.sh
+        - solr-precreate
+        - solovivo
+        - /solrconfig
       networks:
         - backend
+    
 
 ### AWS EB-CLI ################################################
     aws:
