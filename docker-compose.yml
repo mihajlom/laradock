@@ -48,6 +48,8 @@ services:
         - nginx
         - mariadb
         - solr
+          #        - mailhog
+          #        - varnish
 
 ### Workspace Utilities ##################################
     workspace:
@@ -142,6 +144,7 @@ services:
           - INSTALL_SWOOLE=${PHP_FPM_INSTALL_SWOOLE}
           - INSTALL_IMAGE_OPTIMIZERS=${PHP_FPM_INSTALL_IMAGE_OPTIMIZERS}
           - INSTALL_IMAGEMAGICK=${PHP_FPM_INSTALL_IMAGEMAGICK}
+          - SENDMAIL_PATH=${PHP_FPM_SENDMAIL_PATH}
       volumes:
         - ./php-fpm/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
         - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
@@ -568,8 +571,8 @@ services:
     mailhog:
       build: ./mailhog
       ports:
-        - "1025:1025"
-        - "8025:8025"
+        - "${MAILHOG_HTTP_PORT}:8025"
+        - "${MAILHOG_SMTP_PORT}:1025"
       networks:
         - frontend
         - backend
@@ -593,6 +596,29 @@ services:
         - /dev/shm:/dev/shm
       networks:
         - frontend
+
+    varnish:
+      entrypoint:
+        - /usr/sbin/varnishd
+        - -F
+        - -f
+        - /etc/varnish/default.vcl
+        - -s
+        - malloc,300M
+        - -a
+        - 0.0.0.0:80
+        - -a
+        - 0.0.0.0:81,PROXY
+      image: ventz/varnish
+      ports:
+        - 80:80
+        - 812:81/tcp
+      volumes:
+        - ../docker-data/conf/varnish:/etc/varnish
+      networks:
+        - frontend
+      depends_on:
+        - nginx
 
 ### Varnish ##########################################
     proxy:
@@ -731,4 +757,4 @@ services:
         - /var/run/docker.sock:/var/run/docker.sock
       ports:
         - 9010:9000
-      
+
