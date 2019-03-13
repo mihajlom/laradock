@@ -487,6 +487,7 @@ ARG INSTALL_IMAGE_OPTIMIZERS=false
 
 RUN if [ ${INSTALL_IMAGE_OPTIMIZERS} = true ]; then \
     rm /etc/apt/preferences.d/no-debian-php && \
+    apt-get update && \
     apt-get install -y jpegoptim optipng pngquant gifsicle \
 ;fi
 
